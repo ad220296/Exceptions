@@ -195,4 +195,113 @@ Fehler in PL/SQL lassen sich **gezielt behandeln** – du kannst:
 Nutze diese Möglichkeiten, um **robuste und verständliche Fehlerbehandlung** zu implementieren 💡
 
 ---
+# 📛 Fehlerbehandlung in PL/SQL – Quiz & Komplettbeispiel
+
+> Ergänzung zum Hauptkapitel: Exceptions in PL/SQL (Stand: 06.04.2025)
+
+---
+
+## 🧠 Multiple-Choice-Test – Fehlerbehandlung
+
+Wähle jeweils **eine oder mehrere** richtige Antworten!
+
+### ❓ 1. Was ist eine benannte (named) Exception in PL/SQL?
+
+- [ ] a) Eine Exception, die Oracle automatisch behandelt  
+- [x] b) Eine selbst definierte Exception mit `EXCEPTION`  
+- [x] c) Eine Exception, die im `DECLARE`-Block benannt wird  
+- [ ] d) Eine Exception, die mit `RAISE_APPLICATION_ERROR` erzeugt wird  
+
+---
+
+### ❓ 2. Welche Exception wird ausgelöst, wenn `SELECT ... INTO` keine Zeile findet?
+
+- [ ] a) TOO_MANY_ROWS  
+- [ ] b) INVALID_NUMBER  
+- [x] c) NO_DATA_FOUND  
+- [ ] d) VALUE_ERROR  
+
+---
+
+### ❓ 3. Wie verknüpft man eine benannte Exception mit einem Fehlercode?
+
+- [ ] a) WITH ERRORCODE …  
+- [ ] b) USING -CODE  
+- [x] c) `PRAGMA EXCEPTION_INIT(...)`  
+- [ ] d) `EXCEPTION_MAP(...)`
+
+---
+
+### ❓ 4. Welche Aussage zu `RAISE_APPLICATION_ERROR` ist korrekt?
+
+- [x] a) Damit lassen sich benutzerdefinierte Fehler auslösen  
+- [ ] b) Es muss im `EXCEPTION`-Block stehen  
+- [ ] c) Es ist nur in Prozeduren erlaubt  
+- [x] d) Der Fehlercode muss zwischen -20000 und -20999 liegen  
+
+---
+
+### ❓ 5. Was passiert bei `WHEN OTHERS THEN ...`?
+
+- [ ] a) Nur NO_DATA_FOUND wird behandelt  
+- [x] b) Es fängt **alle nicht explizit behandelten** Fehler ab  
+- [ ] c) Es ignoriert alle Systemfehler  
+- [ ] d) Es beendet das Programm sofort  
+
+---
+
+## 🧩 Komplettbeispiel – Alle Exception-Arten
+
+### 📦 1. Exception im Package
+
+```sql
+CREATE OR REPLACE PACKAGE my_exceptions_pkg IS
+  ex_sal_too_high EXCEPTION;
+  PRAGMA EXCEPTION_INIT(ex_sal_too_high, -20012);
+END;
+/
+```
+
+---
+
+### 💥 2. Hauptblock mit allen Exception-Typen
+
+```sql
+DECLARE
+  v_sal emp.sal%TYPE;
+  v_bonus emp.comm%TYPE;
+
+  bonus_too_high EXCEPTION; -- Named Programmer-defined
+BEGIN
+  SELECT sal, comm INTO v_sal, v_bonus FROM emp WHERE ename = 'CHRISTOPH';
+
+  IF v_bonus IS NOT NULL AND v_bonus > 1000 THEN
+    RAISE bonus_too_high;
+  END IF;
+
+  IF v_sal > 5000 THEN
+    RAISE my_exceptions_pkg.ex_sal_too_high;
+  END IF;
+
+  DBMS_OUTPUT.PUT_LINE('Bonus & Gehalt sind okay!');
+
+EXCEPTION
+  WHEN bonus_too_high THEN
+    DBMS_OUTPUT.PUT_LINE('❗ Bonus ist zu hoch!');
+
+  WHEN my_exceptions_pkg.ex_sal_too_high THEN
+    DBMS_OUTPUT.PUT_LINE('⚠️ Fehlercode -20012: Gehalt ist zu hoch!');
+
+  WHEN NO_DATA_FOUND THEN
+    DBMS_OUTPUT.PUT_LINE('❌ Kein Mitarbeiter CHRISTOPH gefunden!');
+
+  WHEN OTHERS THEN
+    DBMS_OUTPUT.PUT_LINE('❗ Unbekannter Fehler: ' || SQLERRM);
+END;
+/
+```
+
+---
+
+✅ Dieses Beispiel kombiniert **alle Exception-Techniken**, die im Unterricht und für den Test relevant sind.
 
